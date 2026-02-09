@@ -7,7 +7,6 @@ import { PropertyCard } from './components/PropertyCard';
 import { AuthDialog } from './components/AuthDialog';
 import { SellPropertyForm } from './components/SellPropertyForm';
 import { Footer } from './components/Footer';
-//import { properties } from './data/properties';
 import { Toaster } from './components/ui/sonner';
 import { fetchProp } from '../Services/api/apicalls';
 
