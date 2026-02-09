@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstateHub - Real Estate Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Logo -->
+                <button onclick="navigateTo('home')" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <i class="fas fa-building text-blue-600 text-2xl"></i>
+                    <span class="text-xl font-bold text-gray-900">EstateHub</span>
+                </button>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center gap-6">
+                    <button onclick="navigateTo('home')" class="nav-link" data-page="home">Home</button>
+                    <button onclick="navigateTo('buy')" class="nav-link" data-page="buy">Buy</button>
+                    <button onclick="navigateTo('rent')" class="nav-link" data-page="rent">Rent</button>
+                    <button onclick="navigateTo('sell')" class="nav-link" data-page="sell">Sell</button>
+                </nav>
+
+                <!-- Desktop Auth Button -->
+                <div class="hidden md:block">
+                    <button onclick="openAuthDialog()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Sign In / Register
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2">
+                    <i class="fas fa-bars text-2xl" id="mobile-menu-icon"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden py-4 border-t">
+                <nav class="flex flex-col gap-4">
+                    <button onclick="navigateTo('home'); toggleMobileMenu()" class="text-left px-2 py-1 text-sm text-gray-600 hover:text-gray-900">Home</button>
+                    <button onclick="navigateTo('buy'); toggleMobileMenu()" class="text-left px-2 py-1 text-sm text-gray-600 hover:text-gray-900">Buy</button>
+                    <button onclick="navigateTo('rent'); toggleMobileMenu()" class="text-left px-2 py-1 text-sm text-gray-600 hover:text-gray-900">Rent</button>
+                    <button onclick="navigateTo('sell'); toggleMobileMenu()" class="text-left px-2 py-1 text-sm text-gray-600 hover:text-gray-900">Sell</button>
+                    <button onclick="openAuthDialog()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 w-full">
+                        Sign In / Register
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1" id="main-content">
+        <!-- Content will be dynamically loaded here -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 mt-16">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fas fa-building text-blue-500 text-2xl"></i>
+                        <span class="text-xl text-white font-bold">EstateHub</span>
+                    </div>
+                    <p class="text-sm mb-4">
+                        Your trusted partner in finding the perfect property. We connect buyers, sellers, and renters with their dream homes and investments.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#" class="hover:text-blue-500 transition-colors"><i class="fab fa-facebook text-xl"></i></a>
+                        <a href="#" class="hover:text-blue-500 transition-colors"><i class="fab fa-twitter text-xl"></i></a>
+                        <a href="#" class="hover:text-blue-500 transition-colors"><i class="fab fa-instagram text-xl"></i></a>
+                        <a href="#" class="hover:text-blue-500 transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-white font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Properties</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Agents</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Property Types -->
+                <div>
+                    <h3 class="text-white font-bold mb-4">Property Types</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Houses for Sale</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Apartments for Rent</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Commercial Buildings</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Land & Plots</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Investment Properties</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div>
+                    <h3 class="text-white font-bold mb-4">Contact Us</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt mt-1"></i>
+                            <span>123 Real Estate Ave, Suite 100<br>New York, NY 10001</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fas fa-phone"></i>
+                            <span>+1 (555) 123-4567</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fas fa-envelope"></i>
+                            <span>info@estatehub.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
+                <p>&copy; 2026 EstateHub. All rights reserved. | <a href="#" class="hover:text-blue-500">Privacy Policy</a> | <a href="#" class="hover:text-blue-500">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Dialog Modal -->
+    <div id="auth-dialog" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Welcome to EstateHub</h2>
+                <button onclick="closeAuthDialog()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-6">
+                <div class="flex border-b">
+                    <button onclick="switchAuthTab('login')" class="auth-tab flex-1 py-2 px-4 font-medium border-b-2" id="login-tab">Sign In</button>
+                    <button onclick="switchAuthTab('register')" class="auth-tab flex-1 py-2 px-4 font-medium border-b-2" id="register-tab">Register</button>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="your@email.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Sign In
+                </button>
+                <div class="text-center text-sm">
+                    <a href="#" class="text-blue-600 hover:underline">Forgot password?</a>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="hidden space-y-4" onsubmit="handleRegister(event)">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Full Name</label>
+                    <input type="text" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="John Doe">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="your@email.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Phone Number</label>
+                    <input type="tel" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="+1 (555) 000-0000">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="reg-password" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Confirm Password</label>
+                    <input type="password" id="reg-confirm" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

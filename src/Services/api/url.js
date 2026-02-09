@@ -1,0 +1,1 @@
+export const base_url="https://wuy4cx61ng.execute-api.ap-south-2.amazonaws.com/RE/"
