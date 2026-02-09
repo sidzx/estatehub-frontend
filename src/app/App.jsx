@@ -23,7 +23,7 @@ function App() {
   const handleSearch = (searchTerm, propertyType) => {
     let filtered = properties;
 
-    // Filter by property type
+    // Filter by property 
     if (propertyType !== 'all') {
       filtered = filtered.filter(p => p.type === propertyType);
     }
