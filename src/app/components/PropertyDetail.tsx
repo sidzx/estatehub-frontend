@@ -17,8 +17,8 @@ export function PropertyDetail({ property, onBack }: PropertyDetailProps) {
 
   const formatPrice = (price: number, forSale: boolean) => {
     return forSale
-      ? `$${price.toLocaleString()}`
-      : `$${price.toLocaleString()}/mo`;
+      ? `€${price.toLocaleString()}`
+      : `€${price.toLocaleString()}/mo`;
   };
 
   const getPropertyTypeLabel = (type: string) => {

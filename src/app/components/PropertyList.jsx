@@ -144,7 +144,7 @@ export function PropertyList({ properties, onPropertyClick, title, showFilters =
               </div>
 
               <div>
-                <Label>Price Range: ${filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}</Label>
+                <Label>Price Range: €{filters.priceRange[0].toLocaleString()} - €{filters.priceRange[1].toLocaleString()}</Label>
                 <Slider
                   min={0}
                   max={5000000}

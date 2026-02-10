@@ -5,22 +5,26 @@ import { Card, CardContent } from './ui/card';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ContactForm } from './ContactForm';
 import { ScheduleTourForm } from './ScheduleTourForm';
+import { ScheduleMeetingForm } from './ScheduleMeetingForm';
 import { useState } from 'react';
 
 export function PropertyDetail({ property, onBack }) {
   const [showContactForm, setShowContactForm] = useState(false);
   const [showScheduleTourForm, setShowScheduleTourForm] = useState(false);
+  const [showScheduleMeetingForm,setShowScheduleMeetingForm]=useState(false)
+
 
   const formatPrice = (price, forSale) => {
     return forSale
-      ? `$${price.toLocaleString()}`
-      : `$${price.toLocaleString()}/mo`;
+      ? `€${price.toLocaleString()}`
+      : `€${price.toLocaleString()}/mo`;
   };
 
   const getPropertyTypeLabel = (type) => {
     return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
+ 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Back Button */}
@@ -39,7 +43,7 @@ export function PropertyDetail({ property, onBack }) {
           {/* Image */}
           <div className="relative aspect-[16/10] rounded-lg overflow-hidden mb-6">
             <ImageWithFallback
-              src={property.image}
+              src={property.image_url}
               alt={property.title}
               className="w-full h-full object-cover"
             />
@@ -60,7 +64,7 @@ export function PropertyDetail({ property, onBack }) {
             <div className="flex items-start justify-between mb-2">
               <h1 className="text-3xl">{property.title}</h1>
               <Badge className="bg-green-600 text-white text-base px-3 py-1">
-                {property.forSale ? 'For Sale' : 'For Rent'}
+                {property.for_sale ? 'For Sale' : 'For Rent'}
               </Badge>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
@@ -80,7 +84,7 @@ export function PropertyDetail({ property, onBack }) {
                 </div>
               </CardContent>
             </Card>
-            {property.bedrooms && (
+            {property.bedrooms > 0 && (
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
                   <Bed className="h-8 w-8 text-blue-600" />
@@ -91,7 +95,7 @@ export function PropertyDetail({ property, onBack }) {
                 </CardContent>
               </Card>
             )}
-            {property.bathrooms && (
+            {property.bathrooms >0 && (
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
                   <Bath className="h-8 w-8 text-blue-600" />
@@ -145,7 +149,7 @@ export function PropertyDetail({ property, onBack }) {
                 {formatPrice(property.price, property.forSale)}
               </div>
 
-              {!showContactForm && !showScheduleTourForm ? (
+              {!showContactForm && !showScheduleTourForm && !showScheduleMeetingForm? (
                 <div className="space-y-3">
                   <Button 
                     className="w-full" 
@@ -161,6 +165,9 @@ export function PropertyDetail({ property, onBack }) {
                     onClick={() => setShowScheduleTourForm(true)}
                   >
                     Schedule Tour
+                  </Button>
+                  <Button variant="outline" className="w-full" size="lg" onClick={() => setShowScheduleMeetingForm(true)}>
+                    Book Now
                   </Button>
                   <Button variant="outline" className="w-full" size="lg">
                     Save Property
@@ -185,6 +192,16 @@ export function PropertyDetail({ property, onBack }) {
                         propertyId={property.id}
                         propertyTitle={property.title}
                         onClose={() => setShowScheduleTourForm(false)}
+                      />
+                    </div>
+                  )}
+                   {showScheduleMeetingForm && (
+                    <div>
+                      <h3 className="text-lg mb-4">Schedule Meeting</h3>
+                      <ScheduleMeetingForm
+                        propertyId={property.id}
+                        propertyTitle={property.title}
+                        onClose={() => setShowScheduleMeetingForm(false)}
                       />
                     </div>
                   )}

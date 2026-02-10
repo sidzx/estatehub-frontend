@@ -11,6 +11,7 @@ export function ContactForm({ propertyId, propertyTitle, onClose }) {
     email: '',
     phone: '',
     message: `I'm interested in ${propertyTitle}`,
+    property_id:{propertyId}
   });
 
   const handleSubmit = (e) => {

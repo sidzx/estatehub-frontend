@@ -21,9 +21,66 @@ export function AuthDialog({ open, onOpenChange, setUser}) {
     confirmPassword: '',
   });
   
+const [showForgot, setShowForgot] = useState(false);
+const [forgotData, setForgotData] = useState({
+  email: "",
+  otp: "",
+  newPassword: ""
+});
+
+const handleForgotPassword = (e) => {
+  e.preventDefault();
+
+  const user = new CognitoUser({
+    Username: forgotData.email,
+    Pool: userPool
+  });
+
+  user.forgotPassword({
+    onSuccess: () => {
+      toast.success("Password reset successful");
+      setShowForgot(false);
+    },
+    onFailure: (err) => {
+      console.error(err);
+      toast.error(err.message);
+    },
+    inputVerificationCode: () => {
+      toast.success("OTP sent to your email");
+      setForgotPasswordshowOtp(true);
+    }
+  });
+};
+
+const handleConfirmPassword = (e) => {
+  e.preventDefault();
+
+  const user = new CognitoUser({
+    Username: forgotData.email,
+    Pool: userPool
+  });
+
+  user.confirmPassword(
+    forgotData.otp,
+    forgotData.newPassword,
+    {
+      onSuccess: () => {
+        toast.success("Password reset successful");
+        setShowForgot(false);
+        setForgotPasswordshowOtp(false);
+      },
+      onFailure: (err) => {
+        console.error(err);
+        toast.error(err.message);
+      }
+    }
+  );
+};
+
  
   //const navigate = useNavigate()
   const [showOtp, setShowOtp] = useState(false);
+  const [forgotPasswordshowOtp,setForgotPasswordshowOtp]=useState(false)
   const [otp, setOtp] = useState("");
   const [userCheck,setUserCheck]=useState()
 const handleLogin = (e) => {
@@ -171,7 +228,7 @@ const handleLogin = (e) => {
               </Button>
 
               <div className="text-center text-sm text-gray-600">
-                <a href="#" className="text-blue-600 hover:underline">
+                <a href="#" onClick={() => setShowForgot(true)} className="text-blue-600 hover:underline">
                   Forgot password?
                 </a>
               </div>
@@ -261,6 +318,53 @@ const handleLogin = (e) => {
             </Button>
           </div>
         )}
+        {showForgot && !forgotPasswordshowOtp && (
+  <form onSubmit={handleForgotPassword} className="space-y-4">
+    <Label>Email</Label>
+    <Input
+      type="email"
+      value={forgotData.email}
+      onChange={(e) =>
+        setForgotData({ ...forgotData, email: e.target.value })
+      }
+      required
+    />
+    <Button type="submit" className="w-full">
+      Send OTP
+    </Button>
+  </form>
+)}
+{showForgot && forgotPasswordshowOtp && (
+  <form onSubmit={handleConfirmPassword} className="space-y-4">
+    <Label>OTP</Label>
+    <Input
+      value={forgotData.otp}
+      onChange={(e) =>
+        setForgotData({ ...forgotData, otp: e.target.value })
+      }
+      required
+    />
+
+    <Label>New Password</Label>
+    <Input
+      type="password"
+      value={forgotData.newPassword}
+      onChange={(e) =>
+        setForgotData({
+          ...forgotData,
+          newPassword: e.target.value
+        })
+      }
+      required
+    />
+
+    <Button type="submit" className="w-full">
+      Reset Password
+    </Button>
+  </form>
+)}
+
+
       </DialogContent>
     </Dialog>
   );

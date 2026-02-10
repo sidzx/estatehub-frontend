@@ -22,7 +22,7 @@ function App() {
   const [user,setUser]=useState(null)
   const handleSearch = (searchTerm, propertyType) => {
     let filtered = properties;
-
+    
     // Filter by property 
     if (propertyType !== 'all') {
       filtered = filtered.filter(p => p.type === propertyType);
@@ -50,17 +50,38 @@ function App() {
   };
 
   const handleNavigate = (page) => {
+    console.log("roerties:", properties)
     setCurrentPage(page);
     
     // Set appropriate property filters based on navigation
-    if (page === 'buy') {
-      setSearchResults(properties.filter(p => p.forSale));
-    } else if (page === 'rent') {
-      setSearchResults(properties.filter(p => !p.forSale));
-    } else if (page === 'home') {
-      setSearchResults(properties);
-    }
+    // if (page === 'buy') {
+    //   const filtered = properties.filter(p => Number(p.for_sale) === 1);
+    //   console.log("buy filtered:", filtered);
+    //   setSearchResults(filtered);
+    //   // setSearchResults(properties.filter(p => p.for_sale==1));
+    //   // console.log("buy:",searchResults)
+    // } else if (page === 'rent') {
+    //   const filtered = properties.filter(p => Number(p.for_sale) === 0);
+    //   console.log("buy filtered:", filtered);
+    //   setSearchResults(filtered);
+    // } else if (page === 'home') {
+    //   setSearchResults(properties);
+    // }
   };
+
+  const getFilteredProperties = () => {
+
+  if (currentPage === "buy") {
+    return properties.filter(p => Number(p.for_sale) === 1);
+  }
+
+  if (currentPage === "rent") {
+    return properties.filter(p => Number(p.for_sale) === 0);
+  }
+
+  return properties;
+};
+
   useEffect(() => {
 
   const fetchProperties = async () => {
@@ -96,7 +117,7 @@ function App() {
 
 }, []);
 
-
+  
   console.log(properties)
 
   const renderContent = () => {
@@ -129,7 +150,8 @@ function App() {
       case 'buy':
         return (
           <PropertyList
-            properties={searchResults}
+            key={currentPage}
+            properties={getFilteredProperties}
             onPropertyClick={handlePropertyClick}
             title="Properties for Sale"
           />
@@ -138,7 +160,8 @@ function App() {
       case 'rent':
         return (
           <PropertyList
-            properties={searchResults}
+          key={currentPage}
+            properties={getFilteredProperties}
             onPropertyClick={handlePropertyClick}
             title="Properties for Rent"
           />

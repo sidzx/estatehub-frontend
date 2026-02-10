@@ -35,7 +35,7 @@ export function PropertyCard({ property, onClick }) {
         </div>
         <div className="absolute top-3 right-3">
           <Badge className="bg-green-600 text-white">
-            {property.forSale ? 'For Sale' : 'For Rent'}
+            {property.for_sale ? 'For Sale' : 'For Rent'}
           </Badge>
         </div>
       </div>

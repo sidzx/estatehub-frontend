@@ -33,12 +33,12 @@ export function Hero({ onSearch }) {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="h-12"
+                  className="h-12 text-black"
                 />
               </div>
               <div className="w-full md:w-48 ">
                 <Select value={propertyType} onValueChange={setPropertyType}>
-                  <SelectTrigger className="h-12 bg-green-100 text-green-900 border-green-300">
+                  <SelectTrigger className="h-12 bg-blue-100 text-blue-900 border-blue-300">
                     <SelectValue placeholder="Property Type" />
                   </SelectTrigger>
                   <SelectContent>
