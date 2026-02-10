@@ -139,7 +139,7 @@ export function PropertyDetail({ property, onBack }: PropertyDetailProps) {
           </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar*/}
         <div className="lg:col-span-1">
           <Card className="sticky top-20">
             <CardContent className="p-6">
