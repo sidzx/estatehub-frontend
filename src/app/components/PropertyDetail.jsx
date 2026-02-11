@@ -130,7 +130,7 @@ export function PropertyDetail({ property, onBack }) {
             <h2 className="text-2xl mb-4">Amenities</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {property.amenities &&
-      JSON.parse(property.amenities).map((amenity, index) => (
+      property.amenities.map((amenity, index) => (
         <div key={index} className="flex items-center gap-2">
           <CheckCircle className="h-5 w-5 text-green-600" />
           <span>{amenity}</span>

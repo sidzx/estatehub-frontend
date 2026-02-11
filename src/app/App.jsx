@@ -9,6 +9,7 @@ import { SellPropertyForm } from './components/SellPropertyForm';
 import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 import { fetchProp } from '../Services/api/apicalls';
+import userPool from '../Services/Cognito/Userpool';
 
 function App() {
   console.log("APP RENDERED")
@@ -117,8 +118,27 @@ function App() {
 
 }, []);
 
-  
-  console.log(properties)
+  useEffect(()=>{
+    const user =userPool.getCurrentUser()
+    if(!user) return
+    setUser(user)
+
+     user.getSession((err, session) => {
+      if (err || !session?.isValid()) return;
+
+      user.getUserAttributes((err, attributes) => {
+        if (err) return;
+
+        const data = {};
+        attributes.forEach(attr => {
+          data[attr.getName()] = attr.getValue();
+        });
+
+        setUser(data);
+      });
+    });
+  },[])
+  console.log("user",user)
 
   const renderContent = () => {
     switch (currentPage) {

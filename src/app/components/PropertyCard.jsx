@@ -54,13 +54,13 @@ export function PropertyCard({ property, onClick }) {
             <Square className="h-4 w-4" />
             <span>{property.area.toLocaleString()} sq ft</span>
           </div>
-          {property.bedrooms && (
+          {property.bedrooms >0 && (
             <div className="flex items-center gap-1">
               <Bed className="h-4 w-4" />
               <span>{property.bedrooms} beds</span>
             </div>
           )}
-          {property.bathrooms && (
+          {property.bathrooms >0 && (
             <div className="flex items-center gap-1">
               <Bath className="h-4 w-4" />
               <span>{property.bathrooms} baths</span>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
@@ -27,7 +27,9 @@ export function SellPropertyForm() {
     imageBase64:''
   });
 
-     const handleFileChange = (e) => {
+  const [email,setEmail]=useState()
+
+  const handleFileChange = (e) => {
   const file = e.target.files[0];
 
   if (!file) return;
@@ -58,10 +60,14 @@ export function SellPropertyForm() {
 };
 
 
-  const user=userPool.getCurrentUser()
+
 
   const handleSubmit = async(e) => {
     console.log(formData)
+    const user=userPool.getCurrentUser()
+    if (!user) return
+    setEmail(user.email)
+
     e.preventDefault();
     if(user){
     const uid= v4()
@@ -76,10 +82,10 @@ export function SellPropertyForm() {
     propertyAdd.append("bathrooms",formData.bathrooms)
     propertyAdd.append("description",formData.description)
     propertyAdd.append("forSale",formData.forSale)
-    propertyAdd.append("amentities",formData.amenities)
+    propertyAdd.append("amenities",formData.amenities)
     propertyAdd.append("yearBuilt",formData.yearBuilt)
     propertyAdd.append("imageBase64",formData.imageBase64)
-    propertyAdd.append("userId",user.name)
+    propertyAdd.append("userEmail",email)
     // Mock form submission
     console.log('Property listing details:', propertyAdd);
     const result= await addProperties(propertyAdd)
@@ -107,6 +113,11 @@ export function SellPropertyForm() {
         toast.error("Please Login or Register")
       }
   };
+
+  // useEffect(()=>{
+    
+
+  // },[])
 
   return (
     <div className="container mx-auto px-4 py-8">

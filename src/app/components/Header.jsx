@@ -12,7 +12,7 @@ export function Header({ user, onAuthClick, onNavigate, currentPage }) {
     { label: 'Home', value: 'home' },
     { label: 'Buy', value: 'buy' },
     { label: 'Rent', value: 'rent' },
-    { label: 'Sell', value: 'sell' },
+    { label: 'List', value: 'sell' },
   ];
 
 const handleLogout = () => {

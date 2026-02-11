@@ -67,7 +67,7 @@ export const properties: Property[] = [
     id: '4',
     title: 'Downtown Office Space',
     type: 'building',
-    price: 2800000,
+    price: 280000000,
     location: 'San Francisco, CA',
     area: 8500,
     description: 'Modern office building in the heart of downtown. Perfect for businesses looking to establish a professional presence.',

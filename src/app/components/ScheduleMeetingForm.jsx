@@ -39,6 +39,11 @@ export function ScheduleMeetingForm({ propertyId, propertyTitle, onClose }) {
     }
   };
 
+  const [phoneNumber, setPhoneNumber] = useState("");
+    const [meetingLink, setMeetingLink] = useState("");
+    const [siteAddress, setSiteAddress] = useState("");
+
+
   // Get minimum date (today)
   const today = new Date().toISOString().split('T')[0];
 
@@ -104,7 +109,7 @@ export function ScheduleMeetingForm({ propertyId, propertyTitle, onClose }) {
       </div>
        <div className="w-full md:w-48 ">
                 <Select value={bookingType} onValueChange={setBookingType}>
-                  <SelectTrigger className="h-12 bg-black-100 text-black-900 border-black-300">
+                  <SelectTrigger className="h-12 bg-white text-black border-gray-300">
                     <SelectValue placeholder="Meeting Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -114,6 +119,51 @@ export function ScheduleMeetingForm({ propertyId, propertyTitle, onClose }) {
                   </SelectContent>
                 </Select>
               </div>
+
+        {/* Conditional Fields */}
+
+            {bookingType === "call" && (
+            <div className="mt-4">
+                <Label>Phone Number</Label>
+                <br />
+                <Label className='text-red-500'>+91 29879222</Label>
+                {/* <Input
+                type="tel"
+                placeholder="Enter phone number"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                /> */}
+            </div>
+            )}
+
+            {bookingType === "meeting" && (
+            <div className="mt-4">
+                <Label>Meeting Link</Label>
+                <br />
+                <Label className='text-red-500'>Meeting link</Label>
+                {/* <Input
+                type="url"
+                placeholder="Paste meeting link (Zoom / Google Meet)"
+                value={meetingLink}
+                onChange={(e) => setMeetingLink(e.target.value)}
+                /> */}
+            </div>
+            )}
+
+            {bookingType === "site visit" && (
+            <div className="mt-4">
+                <Label>Site Address / Notes</Label>
+                {/* <Input
+                type="text"
+                placeholder="Enter property location or notes"
+                value={siteAddress}
+                onChange={(e) => setSiteAddress(e.target.value)}
+                /> */}
+                <br />
+                <Label className='text-red-500'>Address</Label>
+            </div>
+            )}
+
 
       <div className="flex gap-2">
         <Button type="submit" className="flex-1">
