@@ -27,7 +27,7 @@ export function SellPropertyForm() {
     imageBase64:''
   });
 
-  const [email,setEmail]=useState()
+  const [user,setUser]=useState("")
 
   const handleFileChange = (e) => {
   const file = e.target.files[0];
@@ -50,8 +50,6 @@ export function SellPropertyForm() {
   reader.onloadend = () => {
     const base64 = reader.result.split(",")[1];
 
-    console.log("Base64:", base64);
-
     setFormData((prev) => ({
       ...prev,
       imageBase64: base64   // separate field if needed
@@ -64,9 +62,7 @@ export function SellPropertyForm() {
 
   const handleSubmit = async(e) => {
     console.log(formData)
-    const user=userPool.getCurrentUser()
-    if (!user) return
-    setEmail(user.email)
+    
 
     e.preventDefault();
     if(user){
@@ -85,9 +81,10 @@ export function SellPropertyForm() {
     propertyAdd.append("amenities",formData.amenities)
     propertyAdd.append("yearBuilt",formData.yearBuilt)
     propertyAdd.append("imageBase64",formData.imageBase64)
-    propertyAdd.append("userEmail",email)
+    propertyAdd.append("userEmail",user)
     // Mock form submission
-    console.log('Property listing details:', propertyAdd);
+    console.log('Property listing details:', user);
+
     const result= await addProperties(propertyAdd)
     console.log(result)
     if(result.success){
@@ -114,10 +111,26 @@ export function SellPropertyForm() {
       }
   };
 
-  // useEffect(()=>{
-    
+  useEffect(()=>{
+    const user=userPool.getCurrentUser()
+    if (!user) return
+     user.getSession((err, session) => {
+      if (err || !session?.isValid()) return;
 
-  // },[])
+      user.getUserAttributes((err, attributes) => {
+        if (err) return;
+
+        const data = {};
+        attributes.forEach(attr => {
+          data[attr.getName()] = attr.getValue();
+        });
+        
+       setUser(data.email)
+       console.log("userdata",user)
+      });
+    });
+
+   },[])
 
   return (
     <div className="container mx-auto px-4 py-8">
