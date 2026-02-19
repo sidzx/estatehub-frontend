@@ -25,9 +25,9 @@ const log = (email, password, callback) => {
             console.log('🆔 ID Token:', idToken);
 
             const decodedToken = jwtDecode(idToken);
-            const userGroups = decodedToken["cognito:groups"] || [];
+            const userGroups = decodedToken["custom:Role"] || [];
             console.log(userGroups)
-            sessionStorage.setItem("Role", userGroups[0])
+            sessionStorage.setItem("Role", userGroups)
 
             callback(null, session);
             

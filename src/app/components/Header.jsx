@@ -3,8 +3,10 @@ import { Button } from './ui/button';
 import { useState, useEffect } from 'react';
 import userPool from '../../Services/Cognito/Userpool';
 import { logout } from '../../Services/Cognito/logout';
+import { useNavigate } from 'react-router-dom';
 
-export function Header({ user, onAuthClick, onNavigate, currentPage }) {
+export function Header({ user, isLoading, onNavigate, currentPage }) {
+  const navigate= useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [dataUser, setDataUser] = useState({});
@@ -21,25 +23,25 @@ const handleLogout = () => {
   window.location.reload(); // quick sync
 };
 
-  useEffect(() => {
-    const user = userPool.getCurrentUser();
-    if (!user) return;
+  // useEffect(() => {
+  //   const user = userPool.getCurrentUser();
+  //   if (!user) return;
 
-    user.getSession((err, session) => {
-      if (err || !session?.isValid()) return;
+  //   user.getSession((err, session) => {
+  //     if (err || !session?.isValid()) return;
 
-      user.getUserAttributes((err, attributes) => {
-        if (err) return;
+  //     user.getUserAttributes((err, attributes) => {
+  //       if (err) return;
 
-        const data = {};
-        attributes.forEach(attr => {
-          data[attr.getName()] = attr.getValue();
-        });
+  //       const data = {};
+  //       attributes.forEach(attr => {
+  //         data[attr.getName()] = attr.getValue();
+  //       });
 
-        setUserData(data);
-      });
-    });
-  }, []);
+  //       setUserData(data);
+  //     });
+  //   });
+  // }, []);
      
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -76,19 +78,20 @@ const handleLogout = () => {
 
           {/* Desktop Auth */}
           <div className="hidden md:block">
-            {user ? (
+            {isLoading ? (
+              <span className="text-sm text-gray-400 italic">Checking session...</span>
+            ) : user ? (
               <span className="text-sm font-medium text-gray-700">
-                Hi, {user.name}
-                <Button className="ms-2" onClick={handleLogout}>
+                Hi, {user.firstName}
+                <Button className="ms-2"  onClick={handleLogout}>
                   Logout
                 </Button>
               </span>
             ) : (
-              <Button onClick={onAuthClick}>
+              <Button onClick={() => navigate("/auth")}>
                 Sign In / Register
               </Button>
             )}
-
           </div>
 
           {/* Mobile Menu Button */}
@@ -118,7 +121,7 @@ const handleLogout = () => {
               ))}
 
               {!userData && (
-                <Button onClick={onAuthClick} className="w-full">
+                <Button onClick={() => navigate("/auth")} className="w-full">
                   Sign In / Register
                 </Button>
               )}

@@ -3,113 +3,250 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
+import axios from 'axios';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { toast } from 'sonner';
-import { Upload } from 'lucide-react';
+import { Upload , X} from 'lucide-react';
+import { Checkbox } from './ui/checkbox';
 import userPool from '../../Services/Cognito/Userpool';
 import { v4 } from 'uuid'
-import { addProperties } from '../../Services/api/apicalls';
+import { addProperties, generateUploadUrl } from '../../Services/api/apicalls';
 export function SellPropertyForm() {
+
+ 
+  
   const [formData, setFormData] = useState({
     title: '',
     type: '',
     price: '',
-    location: '',
+    streetAddress: '',
+    city:'',
+    state:'',
+    country:'',
+    zipcode:'',
     area: '',
     bedrooms: '',
     bathrooms: '',
     description: '',
     forSale: 'sale',
-    amenities: '',
+    amenities: [],
     yearBuilt: '',
-    image:'',
-    imageBase64:''
+    acceptTerms:''
   });
+
+    const [images, setImages] = useState([]);
+
+  const availableAmenities = [
+    'Swimming Pool',
+    'Gym',
+    'Park',
+    'Garage',
+    'Garden',
+    'Modern Kitchen',
+    'Security System',
+    'Elevator',
+    'Parking',
+    'Fireplace',
+    'Balcony',
+    'Rooftop Access'
+  ];
+
+    const handleAmenityToggle = (amenity) => {
+    setFormData(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
+  };
+
 
   const [user,setUser]=useState("")
 
-  const handleFileChange = (e) => {
-  const file = e.target.files[0];
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
 
-  if (!file) return;
+    // 1. Check Limits
+    if (files.length + images.length > 10) {
+      // toast.error('Maximum 10 images allowed');
+      return;
+    }
 
-  console.log("Selected file:", file);
+    // 2. Process Files
+    const newImages = files.map(file => {
+      // Basic Validation
+      if (file.size > 10 * 1024 * 1024) return null; // 10MB limit
+      if (!file.type.startsWith('image/')) return null;
 
-  // Store raw file
-  setFormData((prev) => ({
-    ...prev,
-    image: file
-  }));
+      return {
+        id: Date.now() + Math.random(),
+        url: URL.createObjectURL(file), 
+        file: file,                    
+        name: file.name
+      };
+    }).filter(Boolean);
 
-  // Convert to Base64 (optional)
-  const reader = new FileReader();
+    // 3. Update State
+    setImages(prev => [...prev, ...newImages]);
 
-  reader.readAsDataURL(file);
-
-  reader.onloadend = () => {
-    const base64 = reader.result.split(",")[1];
-
-    setFormData((prev) => ({
-      ...prev,
-      imageBase64: base64   // separate field if needed
-    }));
+    // 4. Reset input
+    e.target.value = '';
   };
-};
 
-
-
-
-  const handleSubmit = async(e) => {
-    console.log(formData)
-    
-
-    e.preventDefault();
-    if(user){
-    const uid= v4()
-    const propertyAdd=new FormData()
-    propertyAdd.append("propertyId",uid)
-    propertyAdd.append('title',formData.title)
-    propertyAdd.append("type",formData.type)
-    propertyAdd.append("price",formData.price)
-    propertyAdd.append("location",formData.location)
-    propertyAdd.append("area",formData.area)
-    propertyAdd.append("bedrooms",formData.bedrooms)
-    propertyAdd.append("bathrooms",formData.bathrooms)
-    propertyAdd.append("description",formData.description)
-    propertyAdd.append("forSale",formData.forSale)
-    propertyAdd.append("amenities",formData.amenities)
-    propertyAdd.append("yearBuilt",formData.yearBuilt)
-    propertyAdd.append("imageBase64",formData.imageBase64)
-    propertyAdd.append("userEmail",user)
-    // Mock form submission
-    console.log('Property listing details:', user);
-
-    const result= await addProperties(propertyAdd)
-    console.log(result)
-    if(result.success){
-            toast.success('Property listing submitted successfully! Our team will review it shortly.');
-            
-            // Reset form
-            setFormData({
-              title: '',
-              type: '',
-              price: '',
-              location: '',
-              area: '',
-              bedrooms: '',
-              bathrooms: '',
-              description: '',
-              forSale: 'sale',
-              amenities: '',
-              yearBuilt:'',
-              image:'',
-              imageBase64:''
-            });}}
-      else{
-        toast.error("Please Login or Register")
+  const removeImage = (idToRemove) => {
+    setImages(prev => {
+      // 1. Find the image to revoke its URL (free up memory)
+      const imageToRemove = prev.find(img => img.id === idToRemove);
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.url);
       }
+      
+      // 2. Return the new list without that image
+      return prev.filter(img => img.id !== idToRemove);
+    });
   };
+
+
+
+
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // --- 1. Basic Validation ---
+    if (!user) {
+        toast.error("Please Login");
+        return;
+    }
+    if (images.length === 0) {
+        toast.error("Please upload at least one image");
+        return;
+    }
+
+    try {
+        toast.loading("Starting upload...");
+
+       
+        const fileTypes = images.map(img => img.type);
+
+        const payload = {
+            fileCount: images.length,
+            fileTypes: fileTypes
+        };
+
+        
+        const initUpload = await generateUploadUrl(payload);
+        const { propertyId, urls } = initUpload.data;
+
+        console.log("Got upload slots:", urls);
+        
+        const uploadPromises = images.map(async (imageObj, index) => {
+            const { uploadUrl } = urls[index];
+
+            const response = await fetch(uploadUrl, {
+                method: 'PUT',
+                body: imageObj.file, // Send raw file
+                headers: {
+                    'Content-Type': 'application/octet-stream'
+                }
+            });
+
+            if (!response.ok) {
+              
+                const errorText = await response.text();
+                console.error(`Upload failed for image ${index}:`, errorText);
+                throw new Error(`S3 Error: ${response.status} ${response.statusText}`);
+            }
+        });
+
+        // Wait for all uploads to finish
+        await Promise.all(uploadPromises);
+        console.log("Images uploaded to S3 successfully");
+
+
+        // --- STEP 3: Save Data to DynamoDB ---
+        const s3Keys = urls.map(u => u.key);
+
+        const propertyData = {
+            propertyId: propertyId,
+            ...formData,
+            images: s3Keys,
+            userId:user
+        };
+        console.log("Attempting to save property to DynamoDB...", propertyData);
+
+        try {
+            const saveResponse = await addProperties(propertyData);
+            console.log("Backend Response received:", saveResponse);
+
+           if (saveResponse && saveResponse.success === true) {
+               toast.dismiss();
+                toast.success("Property Listed Successfully!");
+                
+                
+                setImages([]);
+                setFormData({
+                title: '',
+                type: '',
+                price: '',
+                streetAddress: '',
+                city:'',
+                state:'',
+                country:'',
+                zipcode:'',
+                area: '',
+                bedrooms: '',
+                bathrooms: '',
+                description: '',
+                forSale: 'sale',
+                amenities: [],
+                yearBuilt: '',
+            });
+            } else {
+                console.warn("Save response was not 200:", saveResponse);
+                toast.error("Server responded with an error.");
+            }
+        } catch (saveError) {
+            console.error("The save-property call failed specifically:", saveError);
+            toast.error("Images uploaded, but database save failed.");
+        }
+        // Call your backend API
+        // const saveResponse = await addProperties(propertyData);
+
+        // // Success Handling
+        // if (saveResponse.status === 200 || saveResponse.status === 201) {
+        //     toast.dismiss();
+        //     toast.success("Property Listed Successfully!");
+
+        //     // Reset Form & Images
+        //     setImages([]);
+        //     setFormData({
+        //         title: '',
+        //         type: '',
+        //         price: '',
+        //         location: '',
+        //         area: '',
+        //         bedrooms: '',
+        //         bathrooms: '',
+        //         description: '',
+        //         forSale: 'sale',
+        //         amenities: [],
+        //         yearBuilt: ''
+        //     });
+        // }
+
+    } catch (error) {
+        console.error("Upload Error:", error);
+        toast.dismiss();
+
+        if (error.message.includes('S3 Error')) {
+            toast.error("Image Upload Failed. Check console for details.");
+        } else {
+            toast.error("Submission Failed. Please try again.");
+        }
+    }
+};
 
   useEffect(()=>{
     const user=userPool.getCurrentUser()
@@ -125,8 +262,8 @@ export function SellPropertyForm() {
           data[attr.getName()] = attr.getValue();
         });
         
-       setUser(data.email)
-       console.log("userdata",user)
+       setUser(data.sub)
+       console.log("userdata",data)
       });
     });
 
@@ -139,6 +276,7 @@ export function SellPropertyForm() {
           <CardHeader>
             <CardTitle className="text-3xl">List Your Property</CardTitle>
             <p className="text-gray-600">Fill in the details below to list your property</p>
+            {!user &&( <p className="text-red-600 test-xs ">Please "Sign In" before filling the form !</p>)}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -153,7 +291,7 @@ export function SellPropertyForm() {
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       required
-                      placeholder="e.g., Modern Family Home"
+                      placeholder=" Modern Family Home"
                     />
                   </div>
 
@@ -193,25 +331,65 @@ export function SellPropertyForm() {
                   </div>
 
                   <div>
-                    <Label htmlFor="price">{formData.forSale === 'sale' ? 'Sale Price' : 'Monthly Rent'} *</Label>
+                    <Label htmlFor="price">{formData.forSale === 'sale' ? 'Sale Price (₹)' : 'Monthly Rent (₹)'} *</Label>
                     <Input
                       id="price"
                       type="number"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       required
-                      placeholder="e.g., 450000"
+                      placeholder=""
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="location">Location *</Label>
+                    <Label htmlFor="streetAddress">streetAddress*</Label>
                     <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      id="streetAddress"
+                      value={formData.streetAddress}
+                      onChange={(e) => setFormData({ ...formData, streetAddress: e.target.value })}
                       required
-                      placeholder="City, State"
+                      placeholder="Street Name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="city">City *</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      required
+                      placeholder="City"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="state">State/Province *</Label>
+                    <Input
+                      id="state"
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      required
+                      placeholder="State"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Country *</Label>
+                    <Input
+                      id="country"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      required
+                      placeholder="Country"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="zipcode ">Zip/Postal Code *</Label>
+                    <Input
+                      id="zipcode"
+                      value={formData.zipcode}
+                      onChange={(e) => setFormData({ ...formData, zipcode: e.target.value })}
+                      required
+                      placeholder="Zipcode"
                     />
                   </div>
                 </div>
@@ -229,7 +407,7 @@ export function SellPropertyForm() {
                       value={formData.area}
                       onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                       required
-                      placeholder="e.g., 2500"
+                      placeholder=""
                     />
                   </div>
 
@@ -240,7 +418,7 @@ export function SellPropertyForm() {
                       type="number"
                       value={formData.yearBuilt}
                       onChange={(e) => setFormData({ ...formData, yearBuilt: e.target.value })}
-                      placeholder="e.g., 2020"
+                      placeholder=""
                       min="1800"
                       max="2026"
                     />
@@ -253,7 +431,7 @@ export function SellPropertyForm() {
                       type="number"
                       value={formData.bedrooms}
                       onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                      placeholder="e.g., 4"
+                      placeholder=""
                       min="0"
                     />
                   </div>
@@ -265,7 +443,7 @@ export function SellPropertyForm() {
                       type="number"
                       value={formData.bathrooms}
                       onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
-                      placeholder="e.g., 3"
+                      placeholder=""
                       min="0"
                     />
                   </div>
@@ -286,53 +464,86 @@ export function SellPropertyForm() {
               </div>
 
               {/* Amenities */}
-              <div>
-                <Label htmlFor="amenities">Amenities (comma-separated)</Label>
-                <Input
-                  id="amenities"
-                  value={formData.amenities}
-                  onChange={(e) => setFormData({ ...formData, amenities: e.target.value })}
-                  placeholder="e.g., Garage, Garden, Modern Kitchen"
-                />
+               <div>
+                <Label>Amenities</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-3">
+                  {availableAmenities.map(amenity => (
+                    <div key={amenity} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`amenity-${amenity}`}
+                        checked={formData.amenities.includes(amenity)}
+                        onCheckedChange={() => handleAmenityToggle(amenity)}
+                      />
+                      <label 
+                        htmlFor={`amenity-${amenity}`}
+                        className="text-sm cursor-pointer"
+                      >
+                        {amenity}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-                        {/* Images */}
-                        <div>
-            <Label>Property Images</Label>
-
-            <label
-              htmlFor="cover"
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer block"
-            >
-              <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-
-              <input
-                required
-                hidden
-                type="file"
-                id="cover"
-                onChange={handleFileChange}
-              />
-
-              <p className="text-gray-600 mb-2">
-                Click to upload or drag and drop
-              </p>
-
-              <p className="text-sm text-gray-500">
-                PNG, JPG up to 10MB
-              </p>
-
-              {/* Feedback */}
-              {formData.image && (
-  <img
-    src={URL.createObjectURL(formData.image)}
-    alt="preview"
-    className="mt-4 h-40 object-cover rounded-lg mx-auto"
-  />
-)}
-            </label>
-          </div>
-
+              {/* Images */}
+              <div>
+                <Label>Property Images (Max 10)</Label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  id="image-upload"
+                  onChange={handleImageUpload}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                >
+                  <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600 mb-2">Click to upload or drag and drop</p>
+                  <p className="text-sm text-gray-500">PNG, JPG up to 10MB (Max 10 images)</p>
+                </label>
+                
+                {/* Image Previews */}
+                {images.length > 0 && (
+                  <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                    {images.map(img => (
+                      <div key={img.id} className="relative group">
+                        <img
+                          src={img.url}
+                          alt={img.name}
+                          className="h-24 w-full object-cover rounded-lg border-2 border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
+                          onClick={() => removeImage(img.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+                <div className="flex items-start gap-2 p-4 bg-gray-50 rounded-lg">
+                  <Checkbox
+                    id="acceptTerms"
+                    checked={formData.acceptTerms}
+                    onCheckedChange={(checked) => setFormData({ ...formData, acceptTerms: checked })}
+                  />
+                  <label htmlFor="acceptTerms" className="text-sm text-gray-700 cursor-pointer">
+                    I accept the{' '}
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Terms & Conditions
+                    </a>{' '}
+                    and{' '}
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Privacy Policy
+                    </a>
+                  </label>
+                </div>
 
               {/* Submit Button */}
               <Button type="submit" size="lg" className="w-full">

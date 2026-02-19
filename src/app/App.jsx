@@ -10,6 +10,7 @@ import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 import { fetchProp } from '../Services/api/apicalls';
 import userPool from '../Services/Cognito/Userpool';
+import { Routes , Route, useNavigate } from 'react-router-dom';
 
 function App() {
   console.log("APP RENDERED")
@@ -21,6 +22,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user,setUser]=useState(null)
+  const navigate= useNavigate()
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const handleSearch = (searchTerm, propertyType) => {
     let filtered = properties;
     
@@ -45,14 +48,17 @@ function App() {
   };
 
   const handlePropertyClick = (property) => {
+    console.log(property)
     setSelectedProperty(property);
     setCurrentPage('detail');
     console.log("zoom")
+
   };
 
   const handleNavigate = (page) => {
-    console.log("roerties:", properties)
+    console.log("properties:", properties)
     setCurrentPage(page);
+    navigate("/")
     
     // Set appropriate property filters based on navigation
     // if (page === 'buy') {
@@ -73,15 +79,20 @@ function App() {
   const getFilteredProperties = () => {
 
   if (currentPage === "buy") {
-    return properties.filter(p => Number(p.for_sale) === 1);
+    return properties.filter(p => p.RENT_SALE === "SALE");
+    console.log("buy_properties",properties)
   }
 
   if (currentPage === "rent") {
-    return properties.filter(p => Number(p.for_sale) === 0);
+    console.log("buy_properties",properties)
+    return properties.filter(p => p.RENT_SALE === "RENT");
+    
   }
 
   return properties;
 };
+
+  console.log(selectedProperty,"sp")
 
   useEffect(() => {
 
@@ -101,12 +112,12 @@ function App() {
 
       console.log("LAMBDA PAYLOAD:", lambdaPayload);
 
-      const parsed = JSON.parse(lambdaPayload.body);
+      //const parsed = JSON.parse(lambdaPayload.body);
 
-      console.log("FINAL DATA:", parsed);
+      //console.log("FINAL DATA:", parsed);
 
-      setProperties(parsed);        // ✅ array
-      setSearchResults(parsed);     // ✅ array
+      setProperties(lambdaPayload);        // ✅ array
+      setSearchResults(lambdaPayload);     // ✅ array
 
     } catch (err) {
       console.error(err);
@@ -118,27 +129,44 @@ function App() {
 
 }, []);
 
-  useEffect(()=>{
-    const user =userPool.getCurrentUser()
-    if(!user) return
-    setUser(user)
+  useEffect(() => {
+    const cognitoUser = userPool.getCurrentUser();
+    
+    if (!cognitoUser) {
+      setIsAuthLoading(false);
+      return;
+    }
 
-     user.getSession((err, session) => {
-      if (err || !session?.isValid()) return;
+    cognitoUser.getSession((err, session) => {
+      if (err || !session?.isValid()) {
+        setIsAuthLoading(false);
+        return;
+      }
 
-      user.getUserAttributes((err, attributes) => {
-        if (err) return;
+      const payload = session.getIdToken().decodePayload();
+      const role = payload["cognito:groups"]?.[0] || payload["custom:role"] || "user";
 
-        const data = {};
-        attributes.forEach(attr => {
-          data[attr.getName()] = attr.getValue();
-        });
+      cognitoUser.getUserAttributes((err, attributes) => {
+        if (!err && attributes) {
+          const attrMap = {};
+          console.log(attributes)
+          attributes.forEach(attr => {
+            attrMap[attr.getName()] = attr.getValue();
+          });
 
-        setUser(data);
+          setUser({
+            firstName: attrMap["custom:firstName"] || "User",
+            email: attrMap["email"],
+            role: role,
+            sub: payload.sub
+          });
+          console.log(user,"user_details")
+        }
+        setIsAuthLoading(false); 
       });
     });
-  },[])
-  console.log("user",user)
+  }, []);
+
 
   const renderContent = () => {
     switch (currentPage) {
@@ -156,7 +184,7 @@ function App() {
                     .slice(0, 6)
                     .map(property => (
                       <PropertyCard
-                        key={property.id}
+                        key={property.PROPERTY_ID}
                         property={property}
                         onClick={() => handlePropertyClick(property)}
                       />
@@ -208,19 +236,28 @@ function App() {
     <div className="min-h-screen flex flex-col">
       <Header
         user={user}
-        onAuthClick={() => setAuthDialogOpen(true)}
+        isLoading={isAuthLoading}
         onNavigate={handleNavigate}
         currentPage={currentPage}
         
       />
       
       <main className="flex-1">
-        {renderContent()}
+       <Routes>
+
+    <Route path="/" element={renderContent()} />
+
+    <Route
+      path="/auth"
+      element={<AuthDialog setUser={setUser} />}
+    />
+
+  </Routes>
       </main>
 
       <Footer />
 
-      <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} setUser={setUser} />
+      {/* <AuthDialog setUser={setUser} /> */}
       
       <Toaster />
     </div>
